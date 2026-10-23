@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certo — מוקאפ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1E2A38;
+    --ink-soft:#42505f;
+    --paper:#F6F3EC;
+    --paper-raised:#FFFFFF;
+    --line:#DCD5C7;
+    --muted:#8b8574;
+    --verified:#2F6F5E;
+    --verified-bg:#e7efec;
+    --caution:#B8862E;
+    --caution-bg:#f6efe2;
+    --flag:#A63D40;
+    --flag-bg:#f7e9e9;
+    --accent:#3D5A73;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Heebo',sans-serif;
+    font-weight:400;
+    line-height:1.55;
+  }
+  h1,h2,h3,.display{
+    font-family:'Frank Ruhl Libre', serif;
+  }
+  .mono{font-family:'IBM Plex Mono', monospace; direction:ltr; unicode-bidi:embed;}
+
+  /* ===== Top bar ===== */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 32px;
+    background:var(--ink);
+    color:var(--paper);
+    position:sticky; top:0; z-index:50;
+  }
+  .brand{
+    font-family:'Frank Ruhl Libre', serif;
+    font-weight:900;
+    font-size:20px;
+    letter-spacing:0.5px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand .mark{
+    width:26px;height:26px;border:2px solid var(--paper);
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:13px; font-family:'IBM Plex Mono',monospace; font-weight:500;
+    transform:rotate(45deg);
+  }
+  .brand .mark span{transform:rotate(-45deg);}
+  .tabs{display:flex; gap:4px; background:rgba(255,255,255,0.08); padding:4px; border-radius:10px;}
+  .tab-btn{
+    border:none; background:transparent; color:var(--paper);
+    font-family:'Heebo',sans-serif; font-size:14px; font-weight:500;
+    padding:9px 20px; border-radius:7px; cursor:pointer;
+    opacity:0.65; transition:all .2s;
+  }
+  .tab-btn.active{ background:var(--paper); color:var(--ink); opacity:1; }
+
+  .view{display:none; padding:40px 20px 100px;}
+  .view.active{display:block;}
+
+  /* ===== shared containers ===== */
+  .stage{max-width:640px; margin:0 auto;}
+  .stage-wide{max-width:760px; margin:0 auto;}
+
+  /* ===================== QUESTIONNAIRE ===================== */
+  .phone{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:0 20px 50px -20px rgba(30,42,56,0.25);
+    overflow:hidden;
+  }
+  .q-header{
+    padding:22px 26px 0;
+  }
+  .q-eyebrow{
+    font-family:'IBM Plex Mono',monospace; direction:ltr; text-align:right;
+    font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase;
+    margin-bottom:10px;
+  }
+  .progress-track{
+    height:4px; background:var(--line); border-radius:4px; overflow:hidden; margin-bottom:22px;
+  }
+  .progress-fill{
+    height:100%; background:var(--accent); border-radius:4px; transition:width .35s ease;
+  }
+  .q-body{ padding:6px 26px 26px; min-height:340px; }
+  .q-tier{
+    display:inline-block; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px;
+    margin-bottom:14px; letter-spacing:.3px;
+  }
+  .q-tier.required{ background:var(--flag-bg); color:var(--flag); }
+  .q-tier.optional{ background:var(--caution-bg); color:var(--caution); }
+  .q-tier.light{ background:var(--verified-bg); color:var(--verified); }
+  .q-title{ font-size:22px; font-weight:700; margin:0 0 8px; }
+  .q-sub{ font-size:14px; color:var(--ink-soft); margin:0 0 20px; }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13px; color:var(--ink-soft); margin-bottom:6px; }
+  .field input, .field select{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px;
+    font-family:'Heebo',sans-serif; font-size:15px; background:var(--paper-raised); color:var(--ink);
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--accent); }
+
+  .choice-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;}
+  .choice-pill{
+    border:1.5px solid var(--line); background:var(--paper-raised); padding:10px 16px;
+    border-radius:10px; font-size:14px; cursor:pointer; transition:all .15s; color:var(--ink);
+  }
+  .choice-pill.selected{ border-color:var(--accent); background:#eaf0f4; color:var(--accent); font-weight:600; }
+
+  .toggle-row{ display:flex; gap:8px; margin-bottom:6px; }
+  .toggle-opt{
+    flex:1; text-align:center; padding:9px; border:1.5px solid var(--line); border-radius:9px;
+    font-size:13px; cursor:pointer; color:var(--ink-soft);
+  }
+  .toggle-opt.selected{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .note-box{
+    background:var(--caution-bg); border-inset-start:0; border-right:3px solid var(--caution);
+    padding:10px 14px; border-radius:8px; font-size:13px; color:#6b501e; margin-top:10px; display:none;
+  }
+  .note-box.show{ display:block; }
+
+  .error-box{
+    background:var(--flag-bg); border-right:3px solid var(--flag);
+    padding:10px 14px; border-radius:8px; font-size:13px; color:#7a2c2e; margin-top:10px; display:none;
+  }
+  .error-box.show{ display:block; }
+
+  .milestone-box{
+    background:var(--verified-bg); border-right:3px solid var(--verified);
+    padding:12px 14px; border-radius:8px; font-size:13px; color:var(--verified); margin-top:16px; display:none;
+    font-weight:600;
+  }
+  .milestone-box.show{ display:block; }
+
+  .q-footer{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px; border-top:1px solid var(--line); background:#faf8f3;
+  }
+  .btn{
+    border:none; padding:11px 22px; border-radius:10px; font-family:'Heebo',sans-serif;
+    font-size:14px; font-weight:600; cursor:pointer; transition:all .15s;
+  }
+  .btn-primary{ background:var(--ink); color:var(--paper); }
+  .btn-primary:hover{ background:#0f1720; }
+  .btn-primary:disabled{ background:#c7c2b5; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; color:var(--ink-soft); }
+  .btn-skip{ background:transparent; color:var(--muted); text-decoration:underline; font-weight:400; }
+
+  .stage-caption{ text-align:center; font-size:13px; color:var(--muted); margin-top:20px; }
+
+  .legend{
+    max-width:640px; margin:34px auto 0; display:flex; gap:18px; flex-wrap:wrap; justify-content:center;
+    font-size:12px; color:var(--muted);
+  }
+  .legend span.dot{ display:inline-block; width:8px;height:8px;border-radius:50%; margin-left:5px; }
+
+  /* ===================== REPORT ===================== */
+  .report-doc{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    box-shadow:0 20px 50px -20px rgba(30,42,56,0.2);
+  }
+  .report-head{
+    padding:34px 40px 26px;
+    border-bottom:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
+  }
+  .report-head .addr{ font-size:26px; font-weight:700; margin:0 0 6px; }
+  .report-head .gush{ font-family:'IBM Plex Mono',monospace; direction:ltr; text-align:right; font-size:13px; color:var(--muted); }
+  .report-head .date{ font-size:12px; color:var(--muted); text-align:left; white-space:nowrap; }
+  .report-head .date b{ display:block; color:var(--ink); font-size:13px; margin-bottom:2px;}
+
+  .demo-toggle{
+    display:flex; align-items:center; gap:10px; justify-content:center; margin:0 auto 22px; max-width:760px;
+    font-size:13px; color:var(--ink-soft);
+  }
+  .demo-toggle button{
+    border:1.5px solid var(--ink); background:var(--paper-raised); padding:7px 16px; border-radius:20px;
+    font-size:12px; cursor:pointer; font-weight:600;
+  }
+  .demo-toggle button.on{ background:var(--ink); color:var(--paper); }
+
+  .flag-banner{
+    display:none;
+    background:var(--flag); color:#fff; padding:16px 40px;
+    align-items:center; gap:14px;
+  }
+  .flag-banner.show{ display:flex; }
+  .flag-banner .ic{ font-size:22px; }
+  .flag-banner .txt b{ display:block; font-size:15px; margin-bottom:2px; }
+  .flag-banner .txt span{ font-size:13px; opacity:.9; }
+
+  .disclaimer-strip{
+    background:#efece2; padding:12px 40px; font-size:12px; color:var(--ink-soft);
+    border-bottom:1px solid var(--line);
+  }
+
+  .section{ padding:26px 40px; border-bottom:1px solid var(--line); }
+  .section:last-of-type{ border-bottom:none; }
+  .section-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:14px; }
+  .section-num{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+  .section-title{ font-size:18px; font-weight:700; margin:0; }
+  .section-skip-tag{ font-size:11px; color:var(--muted); background:#efece2; padding:2px 8px; border-radius:10px; margin-right:auto; }
+
+  .fact-row{ display:flex; justify-content:space-between; align-items:flex-start; padding:9px 0; border-bottom:1px dashed var(--line); gap:16px; }
+  .fact-row:last-child{ border-bottom:none; }
+  .fact-label{ font-size:13px; color:var(--ink-soft); min-width:150px; }
+  .fact-value{ font-size:14px; font-weight:600; text-align:left; }
+  .fact-source{ font-size:11px; color:var(--muted); display:block; margin-top:2px; font-weight:400; }
+
+  .badge{ display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; }
+  .badge.ok{ background:var(--verified-bg); color:var(--verified); }
+  .badge.warn{ background:var(--caution-bg); color:var(--caution); }
+  .badge.bad{ background:var(--flag-bg); color:var(--flag); }
+
+  table.mini{ width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  table.mini th{ text-align:right; font-weight:500; color:var(--muted); font-size:11px; padding:6px 8px; border-bottom:1px solid var(--line);}
+  table.mini td{ padding:8px; border-bottom:1px solid var(--line); }
+  table.mini tr:last-child td{ border-bottom:none; }
+
+  .value-block{
+    display:flex; gap:24px; align-items:center; background:#faf8f3; border:1px solid var(--line);
+    border-radius:12px; padding:20px; margin-bottom:16px; flex-wrap:wrap;
+  }
+  .value-range{ font-family:'Frank Ruhl Libre',serif; font-size:28px; font-weight:700; }
+  .value-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+  .gauge{ display:flex; flex-direction:column; gap:4px; }
+  .gauge-bar{ display:flex; gap:3px; }
+  .gauge-bar i{ width:22px; height:8px; border-radius:3px; background:var(--line); }
+  .gauge-bar i.on{ background:var(--verified); }
+  .gauge-label{ font-size:11px; color:var(--muted); }
+
+  .plan-row{ display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-bottom:1px dashed var(--line); }
+  .plan-row:last-child{border-bottom:none;}
+  .plan-tag{ font-size:10px; background:var(--ink); color:var(--paper); padding:2px 8px; border-radius:5px; white-space:nowrap; margin-top:3px;}
+  .plan-body b{ font-size:13.5px; display:block; }
+  .plan-body p{ margin:3px 0 0; font-size:12.5px; color:var(--ink-soft); }
+  .plan-unclassified{ background:var(--caution-bg); padding:10px; border-radius:8px; font-size:12.5px; color:#6b501e; }
+
+  .summary-flags{ list-style:none; padding:0; margin:0; }
+  .summary-flags li{ display:flex; gap:8px; padding:8px 0; font-size:13.5px; border-bottom:1px dashed var(--line); }
+  .summary-flags li:last-child{border-bottom:none;}
+
+  .footer-disclaimer{
+    padding:22px 40px; background:var(--ink); color:#c9d0d6; font-size:12px; line-height:1.7;
+  }
+  .footer-disclaimer b{ color:#fff; }
+
+  @media (max-width:700px){
+    .topbar{padding:14px 16px;}
+    .brand span.txt{display:none;}
+    .section, .report-head, .disclaimer-strip, .flag-banner, .footer-disclaimer{padding-left:20px; padding-right:20px;}
+    .fact-row{flex-direction:column; gap:2px;}
+    .fact-value{text-align:right;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="mark"><span>T</span></span><span class="txt">Certo — מוקאפ</span></div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="q">שאלון קליטה</button>
+    <button class="tab-btn" data-tab="r">דוח מידע</button>
+  </div>
+</div>
+
+<!-- ============ QUESTIONNAIRE VIEW ============ -->
+<div class="view active" id="view-q">
+  <div class="stage">
+    <div class="phone">
+      <div class="q-header">
+        <div class="q-eyebrow" id="q-eyebrow">שאלה 1 מתוך 8</div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:12%"></div></div>
+      </div>
+
+      <div class="q-body" id="q-body"><!-- injected by JS --></div>
+
+      <div class="q-footer">
+        <button class="btn btn-ghost" id="btn-back">חזרה</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn btn-skip" id="btn-skip" style="display:none;">דלג</button>
+          <button class="btn btn-primary" id="btn-next">המשך</button>
+        </div>
+      </div>
+    </div>
+    <p class="stage-caption">מוקאפ אינטראקטיבי — מדגים את הזרימה, ההסתעפויות ומצבי הקצה שהוגדרו ב-<span class="mono">User Flow</span></p>
+  </div>
+  <div class="legend">
+    <span><span class="dot" style="background:var(--flag)"></span>חובה, לא ניתן לדלג</span>
+    <span><span class="dot" style="background:var(--caution)"></span>רצוי, ניתן לדלג</span>
+    <span><span class="dot" style="background:var(--verified)"></span>קל, לא חוסם</span>
+  </div>
+</div>
+
+<!-- ============ REPORT VIEW ============ -->
+<div class="view" id="view-r">
+  <div class="demo-toggle">
+    <span>הדגמת מצב קצה:</span>
+    <button id="toggle-flag">צו הריסה מנהלי</button>
+    <button id="toggle-mushaa">מושעא</button>
+    <button id="toggle-lowconf">רמת ביטחון נמוכה בשווי</button>
+  </div>
+
+  <div class="stage-wide">
+    <div class="report-doc">
+
+      <div class="flag-banner" id="flag-banner">
+        <div class="ic">⚠</div>
+        <div class="txt">
+          <b>נמצא צו הריסה מנהלי פעיל על הנכס</b>
+          <span>בניגוד לרוב הממצאים בדוח, לצו הריסה מנהלי יש חלון זמן קצר לערעור/ביצוע (כ-30 יום) — מומלץ לבדוק זאת בדחיפות מול עורך דין. פרטים בסעיף 7.</span>
+        </div>
+      </div>
+
+      <div class="report-head">
+        <div>
+          <p class="addr">רחוב הגפן 14, גבעתיים</p>
+          <p class="gush">גוש 6154 · חלקה 645 · תת-חלקה 12</p>
+        </div>
+        <div class="date"><b>דוח מידע Certo</b>הופק: 28.08.2026<br>מבוסס על מקורות ציבוריים ורשמיים</div>
+      </div>
+
+      <div class="disclaimer-strip">
+        הדוח אינו מהווה ייעוץ משפטי, תכנוני, ו/או שמאי. הדוח אינו בודק חובות לרשות מקומית, לוועד הבית, או חבות בהיטל השבחה — יש לוודא נושאים אלה בנפרד.
+      </div>
+
+      <!-- 1 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">01</span><h3 class="section-title">פרטי הנכס</h3></div>
+        <div class="fact-row"><span class="fact-label">כתובת</span><span class="fact-value">רחוב הגפן 14, גבעתיים</span></div>
+        <div class="fact-row"><span class="fact-label">גוש / חלקה / תת-חלקה</span><span class="fact-value mono">6154 / 645 / 12</span></div>
+        <div class="fact-row"><span class="fact-label">סוג רישום</span><span class="fact-value" id="reg-type">מוסדר (בית משותף)<span class="fact-source">מקור: נסח טאבו, לשכת רישום המקרקעין</span></span></div>
+        <div class="fact-row"><span class="fact-label">שטח רשום</span><span class="fact-value">78 מ״ר<span class="fact-source">מקור: נסח טאבו</span></span></div>
+      </div>
+
+      <!-- 2 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">02</span><h3 class="section-title">מיהו הבעלים הרשום</h3></div>
+        <div class="fact-row">
+          <span class="fact-label">בעלים רשום בנסח</span>
+          <span class="fact-value">כהן משה, ת״ז 0••••••12<span class="fact-source">מקור: נסח טאבו</span></span>
+        </div>
+        <div class="fact-row">
+          <span class="fact-label">צד לעסקה שהוזן</span>
+          <span class="fact-value">כהן משה</span>
+        </div>
+        <div class="fact-row">
+          <span class="fact-label">התאמה</span>
+          <span class="fact-value"><span class="badge ok">✔ תואם</span></span>
+        </div>
+      </div>
+
+      <!-- 3 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">03</span><h3 class="section-title">שעבודים והערות פעילות</h3></div>
+        <table class="mini">
+          <tr><th>סוג הערה</th><th>לטובת מי</th><th>תאריך רישום</th><th>חומרה</th></tr>
+          <tr><td>משכנתא</td><td>בנק הפועלים</td><td>14.03.2019</td><td><span class="badge ok">רגילה</span></td></tr>
+        </table>
+      </div>
+
+      <!-- 4 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">04</span><h3 class="section-title">הצמדות רשומות</h3></div>
+        <div class="fact-row"><span class="fact-label">חניה</span><span class="fact-value">מס׳ 7, מיקום מאומת בתשריט</span></div>
+        <div class="fact-row"><span class="fact-label">מחסן</span><span class="fact-value">מס׳ 3, מיקום מאומת בתשריט</span></div>
+      </div>
+
+      <!-- 5 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">05</span><h3 class="section-title">מצב רישום הבית המשותף</h3></div>
+        <div class="fact-row"><span class="fact-label">צו רישום</span><span class="fact-value"><span class="badge ok">✔ קיים</span></span></div>
+        <div class="fact-row"><span class="fact-label">תקנון מיוחד</span><span class="fact-value">לא קיים — חל תקנון מצוי</span></div>
+      </div>
+
+      <!-- 6 mushaa (conditional) -->
+      <div class="section" id="section-mushaa" style="display:none;">
+        <div class="section-head"><span class="section-num">06</span><h3 class="section-title">תוספת ייעודית — מושעא</h3><span class="section-skip-tag">מוצג רק כשסוג הרישום = מושעא</span></div>
+        <div class="fact-row"><span class="fact-label">חלק יחסי נרכש</span><span class="fact-value">1/4 מהחלקה</span></div>
+        <div class="fact-row"><span class="fact-label">הסכם שיתוף רשום</span><span class="fact-value"><span class="badge warn">לא רשום בנסח</span></span></div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:10px;">היעדר הסכם שיתוף רשום עשוי להשפיע על יכולת המימון ועל האפשרות לפירוק שיתוף בעתיד.</p>
+      </div>
+
+      <!-- 7 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">07</span><h3 class="section-title">תיק בניין</h3></div>
+        <div class="fact-row"><span class="fact-label">היתר בנייה</span><span class="fact-value"><span class="badge ok">✔ קיים</span> מס׳ 2014-0392</span></div>
+        <div class="fact-row"><span class="fact-label">טופס 4 / תעודת גמר</span><span class="fact-value"><span class="badge ok">✔ קיים</span> 09.2015</span></div>
+        <div class="fact-row"><span class="fact-label">חריגות בנייה ידועות</span><span class="fact-value">לא נמצאו</span></div>
+        <div class="fact-row" id="demolition-row" style="display:none;"><span class="fact-label">צו הריסה מנהלי</span><span class="fact-value"><span class="badge bad">קיים — ר' התראה בראש הדוח</span></span></div>
+      </div>
+
+      <!-- 8 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">08</span><h3 class="section-title">מצב תכנוני (תב״ע)</h3></div>
+        <div class="plan-row">
+          <span class="plan-tag">תב״ע בסיסית</span>
+          <div class="plan-body"><b>גב/מק/12 — תוכנית מתאר מקומית</b><p>קובעת את הייעוד והזכויות הבסיסיות לחלקה. סטטוס: <span class="badge ok">מאושרת</span></p></div>
+        </div>
+        <div class="plan-row">
+          <span class="plan-tag">התחדשות עירונית</span>
+          <div class="plan-body"><b>גב/450/תמל — תוספת זכויות בנייה</b><p>מוסיפה זכויות בנייה למגרשים באזור, כולל האפשרות לתוספת קומה. סעיף 4.2 להוראות. סטטוס: <span class="badge warn">בהליך — טרם אושרה סופית</span></p></div>
+        </div>
+        <div class="plan-row">
+          <span class="plan-tag">תשתית ארצית</span>
+          <div class="plan-body"><b>תמ״א 70 — תוכנית מסילת רכבת</b><p>חלה על הגוש/חלקה ברמת סימון קיום בלבד (תוכנית רחבת-היקף).</p></div>
+        </div>
+        <div class="plan-unclassified">⚠ נמצאה תוכנית נוספת בשם "פת/1212/17 — פרטית+שילטון" — קטגוריה לא מזוהה. <a href="#" style="color:inherit;">יש לעיין במסמך המקור</a>.</div>
+      </div>
+
+      <!-- 9 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">09</span><h3 class="section-title">שווי מוערך</h3></div>
+        <div class="value-block">
+          <div>
+            <div class="value-range">2.85M – 3.15M ₪</div>
+            <div class="value-sub">מחיר למ״ר: כ-38,500 ₪</div>
+          </div>
+          <div class="gauge" id="conf-gauge">
+            <div class="gauge-bar"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+            <div class="gauge-label" id="conf-label">רמת ביטחון גבוהה — מבוסס על 6 עסקאות דומות ברחוב/שכונה, ב-12 החודשים האחרונים</div>
+          </div>
+        </div>
+        <table class="mini">
+          <tr><th>כתובת</th><th>מחיר</th><th>תאריך</th><th>חדרים</th><th>שטח</th></tr>
+          <tr><td>הגפן 9</td><td>2,980,000 ₪</td><td>03.2026</td><td>3</td><td>76 מ״ר</td></tr>
+          <tr><td>התאנה 22</td><td>3,050,000 ₪</td><td>01.2026</td><td>3</td><td>80 מ״ר</td></tr>
+          <tr><td>הרימון 5</td><td>2,890,000 ₪</td><td>11.2025</td><td>3</td><td>75 מ״ר</td></tr>
+        </table>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:10px;">מחירי הדירות באזור עלו בכ-4.5% בשנה האחרונה.</p>
+      </div>
+
+      <!-- 10 -->
+      <div class="section">
+        <div class="section-head"><span class="section-num">10</span><h3 class="section-title">סיכום ממצאים</h3></div>
+        <ul class="summary-flags" id="summary-list">
+          <li>✅ אין חריגות בנייה ידועות</li>
+          <li>✅ בעלים רשום תואם לצד לעסקה</li>
+          <li>⚠ תוכנית "התחדשות עירונית" בהליך — עשויה לשנות זכויות בעתיד</li>
+        </ul>
+      </div>
+
+      <div class="footer-disclaimer">
+        <b>הבהרה חשובה:</b> דוח זה מציג עובדות ממקורות ציבוריים ורשמיים בלבד, ואינו מהווה ייעוץ משפטי, תכנוני, או שמאי. הדוח אינו בודק חובות לרשות מקומית (ארנונה/מים/היטלי פיתוח), חובות לוועד הבית, או חבות בהיטל השבחה. לפני עסקה — יש להיוועץ בעורך/ת דין ובשמאי/ת מקרקעין.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Tabs =====
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ===== Report demo toggles =====
+const flagBtn = document.getElementById('toggle-flag');
+const mushaaBtn = document.getElementById('toggle-mushaa');
+const lowconfBtn = document.getElementById('toggle-lowconf');
+
+flagBtn.addEventListener('click', ()=>{
+  const on = flagBtn.classList.toggle('on');
+  document.getElementById('flag-banner').classList.toggle('show', on);
+  document.getElementById('demolition-row').style.display = on ? 'flex' : 'none';
+});
+mushaaBtn.addEventListener('click', ()=>{
+  const on = mushaaBtn.classList.toggle('on');
+  document.getElementById('section-mushaa').style.display = on ? 'block' : 'none';
+  document.getElementById('reg-type').innerHTML = on
+    ? 'מושעא <span class="fact-source">מקור: נסח טאבו, לשכת רישום המקרקעין</span>'
+    : 'מוסדר (בית משותף)<span class="fact-source">מקור: נסח טאבו, לשכת רישום המקרקעין</span>';
+});
+lowconfBtn.addEventListener('click', ()=>{
+  const on = lowconfBtn.classList.toggle('on');
+  const gauge = document.getElementById('conf-gauge');
+  const label = document.getElementById('conf-label');
+  if(on){
+    gauge.querySelectorAll('i').forEach((el,i)=> el.classList.toggle('on', i===0));
+    gauge.className = 'gauge';
+    label.textContent = 'רמת ביטחון נמוכה — פחות מ-3 עסקאות השוואה רלוונטיות נמצאו ב-12 החודשים האחרונים באזור';
+  } else {
+    gauge.querySelectorAll('i').forEach(el=> el.classList.add('on'));
+    label.textContent = 'רמת ביטחון גבוהה — מבוסס על 6 עסקאות דומות ברחוב/שכונה, ב-12 החודשים האחרונים';
+  }
+});
+
+// ===== Questionnaire wizard =====
+const steps = [
+  {
+    tier:'required', tierLabel:'חובה', progress:12,
+    title:'איפה הנכס?', sub:'אפשר להזין כתובת מלאה או גוש/חלקה — מה שנוח לך.',
+    body:`
+      <div class="toggle-row" id="loc-toggle">
+        <div class="toggle-opt selected" data-val="addr">לפי כתובת</div>
+        <div class="toggle-opt" data-val="gush">לפי גוש/חלקה</div>
+      </div>
+      <div class="field"><label>כתובת</label><input type="text" placeholder="לדוגמה: רחוב הגפן 14, גבעתיים" id="loc-input"></div>
+      <div class="error-box" id="loc-error">לא הצלחנו לאתר את הכתובת/גוש-חלקה שהוזנו. בדקו את הפרטים ונסו שוב.</div>
+    `,
+    next:()=>{
+      const val = document.getElementById('loc-input').value.trim();
+      const err = document.getElementById('loc-error');
+      if(!val){ err.classList.add('show'); return false; }
+      err.classList.remove('show');
+      return true;
+    }
+  },
+  {
+    tier:'required', tierLabel:'חובה', progress:25,
+    title:'איזה סוג נכס זה?', sub:'',
+    body:`
+      <div class="choice-row" id="type-choice">
+        ${['דירה בבית משותף','בית פרטי / קוטג׳','משרד','מחסן','קרקע / מגרש','נחלה','אחר'].map((t,i)=>`<div class="choice-pill${i===0?' selected':''}" data-val="${t}">${t}</div>`).join('')}
+      </div>
+    `,
+    next:()=>true
+  },
+  {
+    tier:'required', tierLabel:'חובה', progress:37,
+    title:'כמה חדרים?', sub:'',
+    body:`<div class="field"><label>מספר חדרים</label><input type="number" placeholder="לדוגמה: 3" value="3"></div>`,
+    next:()=>true
+  },
+  {
+    tier:'required', tierLabel:'חובה — סוף השלב שאי אפשר לדלג', progress:50,
+    title:'מה שטח הנכס במ״ר?', sub:'אם אינך יודע/ת במדויק — אפשר לדלג, נשלים ממקור חלופי.',
+    body:`
+      <div class="field"><label>שטח במ״ר</label><input type="number" placeholder="לדוגמה: 78" id="area-input"></div>
+      <div class="toggle-row">
+        <div class="toggle-opt selected" data-val="exact">ידוע במדויק</div>
+        <div class="toggle-opt" data-val="approx">מוערך</div>
+      </div>
+      <div class="note-box" id="area-note">השטח יושלם ממקור חלופי (עסקה קודמת / היתר בנייה / ממוצע שכונתי). ייתכן שהדבר ישפיע על רמת הביטחון בסעיף השווי המוערך בדוח.</div>
+      <div class="milestone-box show">✅ מכאן והלאה כל שאלה ניתנת לדילוג — אפשר כבר לשלוח את הבקשה בכל שלב.</div>
+    `,
+    next:()=>true
+  },
+  {
+    tier:'optional', tierLabel:'רצוי — ניתן לדלג', progress:62,
+    title:'באיזו קומה הדירה?', sub:'לא רלוונטי לכל סוגי הנכס.',
+    body:`<div class="field"><label>קומה</label><input type="number" placeholder="לדוגמה: 4"></div>`,
+    next:()=>true, skippable:true
+  },
+  {
+    tier:'optional', tierLabel:'רצוי — ניתן לדלג', progress:74,
+    title:'שנת בנייה?', sub:'אם ידועה.',
+    body:`<div class="field"><label>שנת בנייה</label><input type="number" placeholder="לדוגמה: 2011"></div>`,
+    next:()=>true, skippable:true
+  },
+  {
+    tier:'light', tierLabel:'שאלה קלה — לא חוסמת', progress:87,
+    title:'המוכר הוא אדם פרטי או חברה?', sub:'שאלת קטגוריה בלבד, לא פרטים מזהים.',
+    body:`
+      <div class="choice-row">
+        <div class="choice-pill selected" data-val="private">אדם פרטי</div>
+        <div class="choice-pill" data-val="company">חברה / יזם</div>
+      </div>
+    `,
+    next:()=>true, skippable:true
+  },
+  {
+    tier:'light', tierLabel:'שאלה קלה — לא חוסמת', progress:100,
+    title:'יש לך את פרטי המוכר?', sub:'אופציונלי — חוסך זמן אם יידרש רישום מקרקעי ישראל בהמשך. אין צורך אם אין לך את הפרטים כעת.',
+    body:`<div class="field"><label>ת״ז / ח״פ המוכר (אופציונלי)</label><input type="text" placeholder="לא חובה"></div>`,
+    next:()=>true, skippable:true, isLast:true
+  }
+];
+
+let stepIndex = 0;
+
+function renderStep(){
+  const s = steps[stepIndex];
+  document.getElementById('q-eyebrow').textContent = `שאלה ${stepIndex+1} מתוך ${steps.length}`;
+  document.getElementById('progress-fill').style.width = s.progress + '%';
+  document.getElementById('q-body').innerHTML = `
+    <span class="q-tier ${s.tier}">${s.tierLabel}</span>
+    <h2 class="q-title">${s.title}</h2>
+    ${s.sub ? `<p class="q-sub">${s.sub}</p>` : ''}
+    ${s.body}
+  `;
+  document.getElementById('btn-back').style.visibility = stepIndex===0 ? 'hidden' : 'visible';
+  document.getElementById('btn-skip').style.display = s.skippable ? 'inline-block' : 'none';
+  document.getElementById('btn-next').textContent = s.isLast ? 'שליחת הבקשה' : 'המשך';
+
+  // wire up interactive bits
+  document.querySelectorAll('.choice-pill').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      p.parentElement.querySelectorAll('.choice-pill').forEach(x=>x.classList.remove('selected'));
+      p.classList.add('selected');
+    });
+  });
+  document.querySelectorAll('.toggle-opt').forEach(p=>{
+    p.addEventListener('click', ()=>{
+      p.parentElement.querySelectorAll('.toggle-opt').forEach(x=>x.classList.remove('selected'));
+      p.classList.add('selected');
+      if(p.parentElement.id !== 'loc-toggle'){
+        const note = document.getElementById('area-note');
+        if(note) note.classList.toggle('show', p.dataset.val==='approx');
+      }
+    });
+  });
+}
+
+document.getElementById('btn-next').addEventListener('click', ()=>{
+  const s = steps[stepIndex];
+  if(s.next && s.next()===false) return;
+  if(s.isLast){
+    document.getElementById('q-body').innerHTML = `
+      <div style="text-align:center; padding:40px 0;">
+        <div style="font-size:40px; margin-bottom:14px;">✅</div>
+        <h2 class="q-title" style="font-size:19px;">הבקשה התקבלה</h2>
+        <p class="q-sub">הדוח יגיע תוך עד יומיים. במידה והנכס רשום ברישום מקרקעי ישראל — יעודכן בנפרד לגבי משך הזמן.</p>
+      </div>`;
+    document.querySelector('.q-footer').style.display = 'none';
+    return;
+  }
+  stepIndex++;
+  renderStep();
+});
+
+document.getElementById('btn-back').addEventListener('click', ()=>{
+  if(stepIndex>0){ stepIndex--; renderStep(); }
+});
+
+document.getElementById('btn-skip').addEventListener('click', ()=>{
+  if(stepIndex < steps.length-1){ stepIndex++; renderStep(); }
+});
+
+renderStep();
+</script>
+</body>
+</html>
